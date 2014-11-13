@@ -1,0 +1,6 @@
+*.ini
+*.txt
+*.lock
+vendor/
+PHPExcel/
+log/
