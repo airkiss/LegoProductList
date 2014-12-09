@@ -42,11 +42,12 @@ function GetLegoProductList($days,$num)
 	return $arrayList;
 }
 
-function GetRawDataFromArray($DataArray,&$objPHPExcel)
+function GetRawDataFromArray($DataArray,&$objPHPExcel,&$outputArray)
 {
 	$rows = 2;
 	foreach($DataArray as $item)
 	{
+		$outputArray[] = $item['id'];
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("A$rows",$item['badges'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("B$rows",$item['url'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("C$rows",$item['name'],PHPExcel_Cell_DataType::TYPE_STRING);
@@ -78,14 +79,22 @@ function GenerateData($ItemInfo,$LegoInfo,$days,$filename,$num,$useTemplate=fals
 			if($librick_id != null)
 			{
 				$item['id'] = $librick_id;
-				$DataArray[$key] = $item;
+				unset($DataArray[$key]);
 				$LegoInfo->InsertItem($item);
 			}
 		}
-		GetRawDataFromArray($DataArray,$objPHPExcel);
-		// Save File	
-		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel,'Excel2007');
-		$objWriter->save($filename);
+		if(count($DataArray) != 0)
+		{
+			$outputArray = array();
+			GetRawDataFromArray($DataArray,$objPHPExcel,$outputArray);
+			// Save File	
+			$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel,'Excel2007');
+			$objWriter->save($filename);
+			$title = '樂高公司絕版錯誤通知';
+			$notify = new SendNotify();
+			$notify->pushList($title,$outputArray);
+			unset($notify);
+		}
 	}catch (Exception $e) {
 		echo "PHPExcel Error : ".$e->getMessage()."<BR>";
 		return;
@@ -99,5 +108,5 @@ $current_time = new DateTime('now');
 $days = $current_time->format('Ymd');
 $ItemInfo = new ItemInfo($dbh);
 $LegoInfo = new LegoInfo($dbh);
-$filename = "Lego.xlsx";
+$filename = "./Lego.xlsx";
 GenerateData($ItemInfo,$LegoInfo,$days,$filename,2000,true);

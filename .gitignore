@@ -1,6 +1,7 @@
 *.ini
 *.txt
 *.lock
+*.xlsx
 vendor/
 PHPExcel/
 log/
