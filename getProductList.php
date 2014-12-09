@@ -1,13 +1,13 @@
 #!/usr/bin/php -q
 <?php
+require_once("./PHPExcel/Classes/PHPExcel.php");
 require_once('vendor/autoload.php');
-require_once(__DIR__.'/WebService.php');
+require_once('autoload.php');
 error_reporting(E_ALL);
 ini_set("display_errors",true);
 ini_set("html_errors",false);
 date_default_timezone_set("Asia/Taipei");
-require_once("./PHPExcel/Classes/PHPExcel.php");
-function GetLegoProductList($num)
+function GetLegoProductList($days,$num)
 {
 	$url = 'http://search-en.lego.com/?cc=us&count='.$num;
 	#$data = WebService::GetWebService($url);
@@ -30,12 +30,13 @@ function GetLegoProductList($num)
 			'badges'=> $item->find('ul#product-badges li')->text(),
 			'url'=> $item->find('a')->attr('href'),
 			'name'=>$item->find('a')->attr('title'),
-			'code'=> $code,
+			'id'=> $code,
+			'days'=>$days,
 			'price'=> str_replace(array(" ","\t","\n"),"",$item->find(".test-navigation-show-price-".$code)->text()),
-			'status'=> $status,
+			'condition'=> $status,
 			'rating'=> $item->find('div')->attr('rating'),
 		);
-		if($item['status'] == '') $count++;
+		if($item['condition'] == '') $count++;
 		$arrayList[] = $item;
 	}
 	return $arrayList;
@@ -49,15 +50,15 @@ function GetRawDataFromArray($DataArray,&$objPHPExcel)
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("A$rows",$item['badges'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("B$rows",$item['url'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("C$rows",$item['name'],PHPExcel_Cell_DataType::TYPE_STRING);
-		$objPHPExcel->getActiveSheet()->setCellValueExplicit("D$rows",$item['code'],PHPExcel_Cell_DataType::TYPE_STRING);
+		$objPHPExcel->getActiveSheet()->setCellValueExplicit("D$rows",$item['id'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("E$rows",$item['price'],PHPExcel_Cell_DataType::TYPE_STRING);
-		$objPHPExcel->getActiveSheet()->setCellValueExplicit("F$rows",$item['status'],PHPExcel_Cell_DataType::TYPE_STRING);
+		$objPHPExcel->getActiveSheet()->setCellValueExplicit("F$rows",$item['condition'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("G$rows",$item['rating'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$rows++;
 	}
 }
 
-function GenerateExcel($filename,$num,$useTemplate=false)
+function GenerateData($ItemInfo,$LegoInfo,$days,$filename,$num,$useTemplate=false)
 {
 	try {
 		// Load Files
@@ -70,7 +71,17 @@ function GenerateExcel($filename,$num,$useTemplate=false)
 
 		$objPHPExcel->setActiveSheetIndex(0);
 		
-		$DataArray = GetLegoProductList($num);
+		$DataArray = GetLegoProductList($days,$num);
+		foreach($DataArray as $key=>$item)
+		{
+			$librick_id = $ItemInfo->getLibrickID($item['id'].'-1');
+			if($librick_id != null)
+			{
+				$item['id'] = $librick_id;
+				$DataArray[$key] = $item;
+				$LegoInfo->InsertItem($item);
+			}
+		}
 		GetRawDataFromArray($DataArray,$objPHPExcel);
 		// Save File	
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel,'Excel2007');
@@ -81,6 +92,12 @@ function GenerateExcel($filename,$num,$useTemplate=false)
 	}
 	return ;
 }
-
+$dbh = new PDO($DB['DSN'],$DB['DB_USER'], $DB['DB_PWD'],
+        array( PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+        PDO::ATTR_PERSISTENT => false));
+$current_time = new DateTime('now');
+$days = $current_time->format('Ymd');
+$ItemInfo = new ItemInfo($dbh);
+$LegoInfo = new LegoInfo($dbh);
 $filename = "Lego.xlsx";
-GenerateExcel($filename,2000,true);
+GenerateData($ItemInfo,$LegoInfo,$days,$filename,2000,true);
