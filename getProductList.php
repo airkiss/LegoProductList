@@ -47,7 +47,7 @@ function GetRawDataFromArray($DataArray,&$objPHPExcel,&$outputArray)
 	$rows = 2;
 	foreach($DataArray as $item)
 	{
-		$outputArray[] = $item['id'];
+		$outputArray[] = $item['id'] . '|' . $item['url'];
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("A$rows",$item['badges'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("B$rows",$item['url'],PHPExcel_Cell_DataType::TYPE_STRING);
 		$objPHPExcel->getActiveSheet()->setCellValueExplicit("C$rows",$item['name'],PHPExcel_Cell_DataType::TYPE_STRING);
