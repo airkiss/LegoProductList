@@ -75,7 +75,7 @@ function GenerateData($ItemInfo,$LegoInfo,$days,$filename,$num,$useTemplate=fals
 		$DataArray = GetLegoProductList($days,$num);
 		foreach($DataArray as $key=>$item)
 		{
-			$librick_id = $ItemInfo->getLibrickID($item['id'].'-1');
+			$librick_id = $ItemInfo->getLibrickID($item['id']);
 			if($librick_id != null)
 			{
 				$item['id'] = $librick_id;
