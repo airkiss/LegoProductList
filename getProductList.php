@@ -81,6 +81,26 @@ function GenerateData($ItemInfo,$LegoInfo,$days,$filename,$num,$useTemplate=fals
 				$item['id'] = $librick_id;
 				unset($DataArray[$key]);
 				$LegoInfo->InsertItem($item);
+				switch($item['badges'])
+				{
+					case 'New':
+						$badges = 1;
+						break;
+					case 'New|Exclusive':
+						$badges = 1;
+						break;
+					case 'New|Hard To Find':
+						$badges = 1;
+						break;
+					default:
+						$badges = 0;
+						break;
+				}
+				if($item['condition'] == "Sold Out")
+					$badges = 2;
+				if($item['condition'] == "Retired product")
+					$badges = 3;
+				$ItemInfo->updateBadges($librick_id,$badges);
 			}
 		}
 		if(count($DataArray) != 0)

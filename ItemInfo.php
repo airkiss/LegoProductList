@@ -11,7 +11,8 @@ class ItemInfo {
 		# 錯誤的話, 就不做了
 		$this->dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		$this->p1 = $this->dbh->prepare("select * from item_info where sub_name=:sub_name 
-			and item_type not in ('Boxes','Instructions')");
+			and item_type not in ('Sets','Gears')");
+		$this->p2 = $this->dbh->prepare("update item_info set badges=:badges where id=:id");
 	}
 
 	function __destruct()
@@ -31,6 +32,20 @@ class ItemInfo {
 		} catch (PDOException $e) {
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
 			return null;
+		}
+		#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Finish'."\n",3,"./log/ItemInfo.txt");
+	}
+
+	function updateBadges($librick_id,$badges)
+	{
+		try {
+			$this->p2->bindParam(':id',$librick_id,PDO::PARAM_STR);
+			$this->p2->bindParam(':badges',$badges,PDO::PARAM_STR);
+			$this->p2->execute();
+			return true;
+		} catch (PDOException $e) {
+			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
+			return false;
 		}
 		#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Finish'."\n",3,"./log/ItemInfo.txt");
 	}
