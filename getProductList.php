@@ -71,7 +71,8 @@ function GenerateData($ItemInfo,$LegoInfo,$days,$filename,$num,$useTemplate=fals
 			$objPHPExcel = PHPExcel_IOFactory::load($filename);
 
 		$objPHPExcel->setActiveSheetIndex(0);
-		
+		//Clean All Badges
+		$ItemInfo->cleanBadges();			
 		$DataArray = GetLegoProductList($days,$num);
 		foreach($DataArray as $key=>$item)
 		{
