@@ -10,7 +10,7 @@ class ItemInfo {
 //					PDO::ATTR_PERSISTENT => false));
 		# 錯誤的話, 就不做了
 		$this->dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-		$this->p1 = $this->dbh->prepare("select * from item_info where sub_name=:sub_name 
+		$this->p1 = $this->dbh->prepare("select * from item_info where legoID=:lego_id 
 			and item_type in ('Sets','Gears')");
 		$this->p2 = $this->dbh->prepare("update item_info set badges=:badges,updated_at=unix_timestamp(now()) where id=:id");
 		$this->p3 = $this->dbh->prepare("update item_info set badges=0");
@@ -21,10 +21,10 @@ class ItemInfo {
 		
 	}
 
-	function getLibrickID($sub_name)
+	function getLegoID($lego_id)
 	{
 		try {
-			$this->p1->bindParam(':sub_name',$sub_name,PDO::PARAM_STR);
+			$this->p1->bindParam(':lego_id',$lego_id,PDO::PARAM_STR);
 			$this->p1->execute();
 			if($this->p1->rowCount() == 0)
                                 return null;
