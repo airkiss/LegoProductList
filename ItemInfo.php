@@ -12,7 +12,7 @@ class ItemInfo {
 		$this->dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		$this->p1 = $this->dbh->prepare("select * from item_info where sub_name=:sub_name 
 			and item_type in ('Sets','Gears')");
-		$this->p2 = $this->dbh->prepare("update item_info set badges=:badges where id=:id");
+		$this->p2 = $this->dbh->prepare("update item_info set badges=:badges,updated_at=unix_timestamp(now()) where id=:id");
 		$this->p3 = $this->dbh->prepare("update item_info set badges=0");
 	}
 
