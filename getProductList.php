@@ -10,10 +10,11 @@ date_default_timezone_set("Asia/Taipei");
 function GetLegoProductList($days,$num)
 {
 	$url = 'http://search-en.lego.com/?cc=us&count='.$num;
-	#$data = WebService::GetWebService($url);
+	$data = WebService::GetWebService($url);
 	#echo $data;
 	#exit;
-	$qp = htmlqp('1.txt');
+	#$qp = htmlqp('1.txt');
+	$qp = htmlqp($data);
 	$ul = $qp->find('#product-results');
 	$arrayList = array();
 	$count = 0;
