@@ -2,6 +2,9 @@
 class ItemInfo {
 	private $dbh = null;
 	private $p1 = null;
+	private $p2 = null;
+	private $p3 = null;
+	private $p4 = null;
 	function __construct($dbh)
 	{
 		$this->dbh = $dbh;
@@ -14,11 +17,17 @@ class ItemInfo {
 			and item_type in ('Sets','Gears')");
 		$this->p2 = $this->dbh->prepare("update item_info set badges=:badges where id=:id");
 		$this->p3 = $this->dbh->prepare("update item_info set badges=0");
+		$this->p4 = $this->dbh->prepare("insert into `item_info_changelog` (`id`,`action`,`desc`,`created_at`)
+                                values (:id,:action,:desc,now())");
 	}
 
 	function __destruct()
 	{
-		
+		unset($dbh);
+		unset($p1);
+		unset($p2);
+		unset($p3);
+		unset($p4);
 	}
 
 	function getLegoID($lego_id)
@@ -43,7 +52,16 @@ class ItemInfo {
 			$this->p2->bindParam(':id',$librick_id,PDO::PARAM_STR);
 			$this->p2->bindParam(':badges',$badges,PDO::PARAM_STR);
 			$this->p2->execute();
-			return true;
+			if($this->p2->rowCount() == 1)
+			{
+				$LogArray = array('id'=>$librick_id,'action'=>'update');
+				$LogArray['desc'] = sprintf("badges='%s'",$badges);
+				$this->insertLog($LogArray);
+				unset($LogArray);
+                                return true;
+			}
+			else
+				return false;
 		} catch (PDOException $e) {
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
 			return false;
@@ -61,6 +79,20 @@ class ItemInfo {
 			return false;
 		}
 		#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Finish'."\n",3,"./log/ItemInfo.txt");
+	}
+
+	function insertLog($update_data)
+	{
+		try {
+			$this->p4->execute($update_data);
+			if($this->p4->rowCount() === 1)
+				return true;
+			return false;
+		} catch(PDOException $e) {
+			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
+			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n");
+			return false;
+		}
 	}
 }
 ?>
